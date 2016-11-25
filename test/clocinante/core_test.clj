@@ -4,12 +4,12 @@
             [clojure.java.io :as io]
             [clojure.data.json :as json]))
 
-(def recordings (System/getenv "RECORDINGS"))
+(def recordings
+  (System/getenv "RECORDINGS"))
 
 (defn from-json-file
   [file]
   (do
-    (println file)
     (json/read-str
       (slurp file)
       :key-fn keyword)))
@@ -22,14 +22,22 @@
         #(not (.isDirectory %))
         (file-seq (io/file dir))))))
 
-(defn extract-url
+(defn read-body
+  [filename]
+  (let [dir (str recordings "/__files")]
+    from-json-file (str dir "/" filename)))
+
+(defn make-case
   [mapping-file]
-  (let [case (:url (:request mapping-file))]
-    case))
+  (let [case {:url (:url (:request mapping-file))}
+        body-filename (:bodyFileName (:response mapping-file))]
+    (into case {:expected (read-body body-filename)})))
 
 (def mappings
-  (map extract-url mappings-files))
+  (map make-case mappings-files))
 
-(facts "first test"
-       (fact "it tests"
-             mappings => "map"))
+(facts
+  "all urls match expectations"
+  (doseq [case mappings]
+    (fact {:midje/description "opa"}
+          (:expected case) => nil)))
