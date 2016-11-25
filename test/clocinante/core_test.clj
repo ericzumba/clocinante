@@ -3,6 +3,7 @@
             [clocinante.core :refer :all]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
+            [clojure.walk :as walk]
             [org.httpkit.client :as http]))
 
 (def host
@@ -35,14 +36,16 @@
 
 (defn perform-request
   [uri]
-  @(http/get uri))
+    (json/read-str
+      (:body @(http/get uri))
+      :key-fn keyword))
 
 (defn make-case
   [mapping-file]
   (let [url (:url (:request mapping-file))
         body (:bodyFileName (:response mapping-file))
         expected (from-json-file (body-path body))
-        actual nil]
+        actual (perform-request (host-path url))]
     {:url url
      :expected expected
      :actual actual}))
@@ -53,5 +56,5 @@
 (facts
   "all urls match expectations"
   (doseq [case mappings]
-    (fact {:midje/description "opa"}
+    (fact {:midje/description "test"}
           (:actual case) => (:expected case))))
