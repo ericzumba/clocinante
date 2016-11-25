@@ -9,10 +9,9 @@
 
 (defn from-json-file
   [file]
-  (do
-    (json/read-str
-      (slurp file)
-      :key-fn keyword)))
+  (json/read-str
+    (slurp file)
+    :key-fn keyword))
 
 (def mappings-files
   (let [dir (str recordings "/mappings")]
@@ -22,16 +21,15 @@
         #(not (.isDirectory %))
         (file-seq (io/file dir))))))
 
-(defn read-body
+(defn body-path
   [filename]
-  (let [dir (str recordings "/__files")]
-    from-json-file (str dir "/" filename)))
+  (str recordings "/__files/" filename))
 
 (defn make-case
   [mapping-file]
   (let [case {:url (:url (:request mapping-file))}
-        body-filename (:bodyFileName (:response mapping-file))]
-    (into case {:expected (read-body body-filename)})))
+        body (:bodyFileName (:response mapping-file))]
+    (into case {:expected (from-json-file (body-path body))})))
 
 (def mappings
   (map make-case mappings-files))
@@ -40,4 +38,4 @@
   "all urls match expectations"
   (doseq [case mappings]
     (fact {:midje/description "opa"}
-          (:expected case) => nil)))
+          (:url case) => (:expected case))))
