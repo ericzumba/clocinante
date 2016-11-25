@@ -2,7 +2,11 @@
   (:require [midje.sweet :refer :all]
             [clocinante.core :refer :all]
             [clojure.java.io :as io]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [org.httpkit.client :as http]))
+
+(def host
+  (System/getenv "HOST"))
 
 (def recordings
   (System/getenv "RECORDINGS"))
@@ -25,11 +29,23 @@
   [filename]
   (str recordings "/__files/" filename))
 
+(defn host-path
+  [path]
+  (str host "/" path))
+
+(defn perform-request
+  [uri]
+  @(http/get uri))
+
 (defn make-case
   [mapping-file]
-  (let [case {:url (:url (:request mapping-file))}
-        body (:bodyFileName (:response mapping-file))]
-    (into case {:expected (from-json-file (body-path body))})))
+  (let [url (:url (:request mapping-file))
+        body (:bodyFileName (:response mapping-file))
+        expected (from-json-file (body-path body))
+        actual nil]
+    {:url url
+     :expected expected
+     :actual actual}))
 
 (def mappings
   (map make-case mappings-files))
@@ -38,4 +54,4 @@
   "all urls match expectations"
   (doseq [case mappings]
     (fact {:midje/description "opa"}
-          (:url case) => (:expected case))))
+          (:actual case) => (:expected case))))
