@@ -5,11 +5,9 @@
             [clojure.data.json :as json]
             [org.httpkit.client :as http]))
 
-(def host
-  (System/getenv "HOST"))
+(def host (System/getenv "HOST"))
 
-(def recordings
-  (System/getenv "RECORDINGS"))
+(def recordings (System/getenv "RECORDINGS"))
 
 (defn from-json-file
   [file]
@@ -52,8 +50,7 @@
 (def mappings
   (map make-case mappings-files))
 
-(facts
-  "all urls match expectations"
+(facts "all urls match expectations"
   (doseq [case mappings]
     (fact {:midje/description "test"}
           (:actual case) => (:expected case))))
