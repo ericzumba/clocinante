@@ -3,7 +3,6 @@
             [clocinante.core :refer :all]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
-            [clojure.walk :as walk]
             [org.httpkit.client :as http]))
 
 (def host
