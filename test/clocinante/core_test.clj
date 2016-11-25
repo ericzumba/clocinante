@@ -4,6 +4,8 @@
             [clojure.java.io :as io]
             [clojure.data.json :as json]))
 
+(def recordings (System/getenv "RECORDINGS"))
+
 (defn from-json-file
   [file]
   (do
@@ -13,7 +15,7 @@
       :key-fn keyword)))
 
 (def mappings-files
-  (let [dir (System/getenv "MAPPINGS_DIR")]
+  (let [dir (str recordings "/mappings")]
     (map
       from-json-file
       (filter
@@ -22,7 +24,8 @@
 
 (defn extract-url
   [mapping-file]
-  (:url (:request mapping-file)))
+  (let [case (:url (:request mapping-file))]
+    case))
 
 (def mappings
   (map extract-url mappings-files))
