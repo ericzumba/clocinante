@@ -52,6 +52,6 @@
   (map make-case sample-urls))
 
 (facts "all urls match expectations"
-  (doseq [case (filter #(= (:status %) "200") mappings)]
+  (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
     (fact {:midje/description (:path case) }
           (resp-json (:actual case)) => (resp-json (:expected case)))))
