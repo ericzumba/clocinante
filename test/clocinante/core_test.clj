@@ -30,10 +30,10 @@
 
 (defn perform-request
   [url]
-  (let
-    [resp @(http/get (str url) {:headers {"Content-Type" "application/json; charset=utf-8"}})
-     status (:status resp)]
-    resp))
+  @(http/get
+     (str url)
+     {:headers
+      {"Content-Type" "application/json; charset=utf-8"}}))
 
 (defn make-case
   [url]
@@ -61,10 +61,11 @@
     (str test-host ":" test-port)
     (str cano-host ":" cano-port)))
 
-
 (defn post-transform
   [o]
-  (dissoc o :geocode))
+  (if (instance? clojure.lang.IPersistentMap o)
+    (dissoc o :geocode)
+    o))
 
 (facts "all urls match expectations"
   (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
