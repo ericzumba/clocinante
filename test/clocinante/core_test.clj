@@ -5,32 +5,23 @@
             [clojure.data.json :as json]
             [org.httpkit.client :as http]))
 
-(def host (System/getenv "HOST"))
+(def test-host (System/getenv "TEST_HOST"))
+(def cano-host (System/getenv "CANO_HOST"))
 
-(def recordings (System/getenv "RECORDINGS"))
+(def samples (System/getenv "SAMPLES"))
 
-(defn from-json-file
-  [file]
-  (json/read-str
-    (slurp file)
-    :key-fn keyword))
-
-(def mappings-files
-  (let [dir (str recordings "/mappings")]
-    (filter
-      #(= (:status (:response %)) 200)
-      (map
-        from-json-file
-        (filter
-          #(not (.isDirectory %))
-          (file-seq (io/file dir)))))))
-
-(defn body-path
+(defn lines
   [filename]
-  (str recordings "/__files/" filename))
+    (line-seq
+      (io/reader filename)))
 
-(defn host-path
-  [path]
+(def sample-urls
+  (map
+    #(io/as-url %)
+    (lines samples)))
+
+(defn request
+  [host path]
   (str host "/" path))
 
 (defn perform-request
@@ -40,19 +31,17 @@
       :key-fn keyword))
 
 (defn make-case
-  [mapping-file]
-  (let [url (:url (:request mapping-file))
-        body (:bodyFileName (:response mapping-file))
-        expected (from-json-file (body-path body))
-        actual (perform-request (host-path url))]
+  [url]
+  (let [expected (perform-request (request cano-host (.getPath url)))
+        actual (perform-request (request test-host (.getPath url)))]
     {:url url
      :expected expected
      :actual actual}))
 
 (def mappings
-  (map make-case mappings-files))
+  (map make-case sample-urls))
 
 (facts "all urls match expectations"
   (doseq [case mappings]
-    (fact {:midje/description "test"}
-          (dissoc (:actual case) :geocode) => (:expected case))))
+    (fact {:midje/description "test" }
+          (dissoc (:actual case) :geocode)  => (:expected case))))
