@@ -3,6 +3,7 @@
             [clocinante.core :refer :all]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
+            [clojure.string :as string]
             [cemerick.url :as curl]
             [org.httpkit.client :as http]))
 
@@ -45,13 +46,20 @@
      :actual actual}))
 
 (defn resp-json
-  [resp]
-  (json/read-str (:body resp)))
+  [resp transform]
+  (json/read-str (transform (:body resp))))
 
 (def mappings
   (map make-case sample-urls))
 
+(defn transform
+  [s]
+  (string/replace
+    s
+    (str test-host ":" test-port)
+    (str cano-host ":" cano-port)))
+
 (facts "all urls match expectations"
   (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
     (fact {:midje/description (:path case) }
-          (resp-json (:actual case)) => (resp-json (:expected case)))))
+          (resp-json (:actual case) transform) => (resp-json (:expected case) identity))))
