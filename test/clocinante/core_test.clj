@@ -33,7 +33,6 @@
   (let
     [resp @(http/get (str url) {:headers {"Content-Type" "application/json; charset=utf-8"}})
      status (:status resp)]
-    (println (str url " " status))
     resp))
 
 (defn make-case
@@ -46,20 +45,36 @@
      :actual actual}))
 
 (defn resp-json
-  [resp transform]
-  (json/read-str (transform (:body resp))))
+  [resp pre-transform post-transform]
+  (post-transform
+    (json/read-str
+      (pre-transform (:body resp))
+      :key-fn keyword)))
 
 (def mappings
   (map make-case sample-urls))
 
-(defn transform
+(defn pre-transform
   [s]
   (string/replace
     s
     (str test-host ":" test-port)
     (str cano-host ":" cano-port)))
 
+
+(defn post-transform
+  [o]
+  (dissoc o :geocode))
+
 (facts "all urls match expectations"
   (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
     (fact {:midje/description (:path case) }
-          (resp-json (:actual case) transform) => (resp-json (:expected case) identity))))
+          (resp-json
+            (:actual case)
+            pre-transform
+            post-transform)
+          =>
+          (resp-json
+            (:expected case)
+            identity
+            identity))))
