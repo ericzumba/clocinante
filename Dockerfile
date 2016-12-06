@@ -7,4 +7,6 @@ COPY project.clj project.clj
 COPY src src
 COPY test test 
 
-VOLUME ["/samples"]
+RUN lein deps 
+
+VOLUME ["/usr/app/samples"]

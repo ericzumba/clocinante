@@ -1,4 +1,5 @@
 IMAGE_NAME:=ericzumba/clocinante:latest
+
 .PHONY: test
 test:
 	export $$(cat config/local.config) && lein midje
