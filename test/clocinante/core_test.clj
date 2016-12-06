@@ -44,4 +44,4 @@
 (facts "all urls match expectations"
   (doseq [case mappings]
     (fact {:midje/description "test" }
-          (dissoc (:actual case) :geocode)  => (:expected case))))
+          (:actual case)  => (:expected case))))
