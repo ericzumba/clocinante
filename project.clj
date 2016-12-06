@@ -5,5 +5,5 @@
                                   [org.clojure/data.json "0.2.6"]
                                   [http-kit "2.2.0"]
                                   [com.cemerick/url "0.1.1"]]
-                   {:plugins [[lein-midje "3.2.1"]]}}
+                   :plugins [[lein-midje "3.2.1"]]}
              :midje {}})
