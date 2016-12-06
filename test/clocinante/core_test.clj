@@ -17,11 +17,13 @@
 
 (def mappings-files
   (let [dir (str recordings "/mappings")]
-    (map
-      from-json-file
-      (filter
-        #(not (.isDirectory %))
-        (file-seq (io/file dir))))))
+    (filter
+      #(= (:status (:response %)) 200)
+      (map
+        from-json-file
+        (filter
+          #(not (.isDirectory %))
+          (file-seq (io/file dir)))))))
 
 (defn body-path
   [filename]
@@ -53,4 +55,4 @@
 (facts "all urls match expectations"
   (doseq [case mappings]
     (fact {:midje/description "test"}
-          (:actual case) => (:expected case))))
+          (dissoc (:actual case) :geocode) => (:expected case))))

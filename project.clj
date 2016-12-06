@@ -4,4 +4,4 @@
   :profiles {:dev {:dependencies [[midje "1.7.0"]
                                   [org.clojure/data.json "0.2.6"]
                                   [http-kit "2.2.0"]]}
-             :midje {}})
+             :midje {:dependencies [[midje "1.7.0"]] }})
