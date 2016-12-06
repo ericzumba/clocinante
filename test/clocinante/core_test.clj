@@ -3,10 +3,13 @@
             [clocinante.core :refer :all]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
+            [cemerick.url :as curl]
             [org.httpkit.client :as http]))
 
-(def test-host (System/getenv "TEST_HOST"))
 (def cano-host (System/getenv "CANO_HOST"))
+(def cano-port (read-string (System/getenv "CANO_PORT")))
+(def test-host (System/getenv "TEST_HOST"))
+(def test-port (read-string (System/getenv "TEST_PORT")))
 
 (def samples (System/getenv "SAMPLES"))
 
@@ -17,31 +20,38 @@
 
 (def sample-urls
   (map
-    #(io/as-url %)
+    #(curl/url %)
     (lines samples)))
 
-(defn request
-  [host path]
-  (str host "/" path))
+(defn replace-host
+  [host port url]
+  (assoc url :host host :port port))
 
 (defn perform-request
-  [uri]
-    (json/read-str
-      (:body @(http/get uri))
-      :key-fn keyword))
+  [url]
+  (let
+    [resp @(http/get (str url) {:headers {"Content-Type" "application/json; charset=utf-8"}})
+     status (:status resp)]
+    (println (str url " " status))
+    resp))
 
 (defn make-case
   [url]
-  (let [expected (perform-request (request cano-host (.getPath url)))
-        actual (perform-request (request test-host (.getPath url)))]
-    {:url url
+  (let [path (:path url)
+        expected (perform-request (replace-host cano-host cano-port url))
+        actual (perform-request (replace-host test-host test-port url))]
+    {:path path
      :expected expected
      :actual actual}))
+
+(defn resp-json
+  [resp]
+  (json/read-str (:body resp)))
 
 (def mappings
   (map make-case sample-urls))
 
 (facts "all urls match expectations"
-  (doseq [case mappings]
-    (fact {:midje/description "test" }
-          (:actual case)  => (:expected case))))
+  (doseq [case (filter #(= (:status %) 200) mappings)]
+    (fact {:midje/description (:path case) }
+          (resp-json (:actual case)) => (resp-json (:expected case)))))
