@@ -30,10 +30,9 @@
 
 (defn make-case
   [url]
-  (let [path (:path url)
-        expected (perform-request (replace-host cano-host cano-port url))
+  (let [expected (perform-request (replace-host cano-host cano-port url))
         actual (perform-request (replace-host test-host test-port url))]
-    {:path path
+    {:url url
      :expected expected
      :actual actual}))
 
@@ -55,7 +54,7 @@
 
 (facts "all urls match expectations"
   (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
-    (fact {:midje/description (:path case) }
+    (fact {:midje/description (str (:url case)) }
           (resp-json
             (:actual case)
             pre-transform)
