@@ -54,7 +54,7 @@
 
 (facts "all urls match expectations"
   (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
-    (fact {:midje/description (str (:url case)) }
+    (fact {:midje/description (replace-host test-host test-port (:url case)) }
           (resp-json
             (:actual case)
             pre-transform)
