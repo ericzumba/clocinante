@@ -11,9 +11,9 @@ run: image
 		-e CANO_PORT=8080 \
 		-e TEST_HOST=api \
 		-e TEST_PORT=8081 \
-		-e SAMPLES=/samples/sample.urls \
+		-e SAMPLES=/usr/app/sample.urls \
 		-v $(SAMPLES_DIR):/samples \
-		-t $(IMAGE_NAME) lein midje
+		-t $(IMAGE_NAME) cp /samples/sample.urls ./sample.urls && lein midje
 
 .PHONY: image
 image:

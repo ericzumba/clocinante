@@ -9,4 +9,4 @@ COPY test test
 
 RUN lein deps 
 
-VOLUME ["/usr/app/samples"]
+VOLUME ["/samples"]
