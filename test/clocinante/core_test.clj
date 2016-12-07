@@ -12,17 +12,10 @@
 (def test-host (System/getenv "TEST_HOST"))
 (def test-port (read-string (System/getenv "TEST_PORT")))
 
-(def samples (System/getenv "SAMPLES"))
-
-(defn lines
-  [filename]
-    (line-seq
-      (io/reader filename)))
-
 (def sample-urls
   (map
     #(curl/url %)
-    (lines samples)))
+    (repeatedly #(.readLine *in*))))
 
 (defn replace-host
   [host port url]
