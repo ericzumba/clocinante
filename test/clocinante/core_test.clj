@@ -13,9 +13,13 @@
 (def test-port (read-string (System/getenv "TEST_PORT")))
 
 (def sample-urls
-  (map
-    #(curl/url %)
-    (repeatedly #(.readLine *in*))))
+  (remove
+    nil?
+    (map
+      #(try
+        (curl/url %)
+        (catch java.net.MalformedURLException e nil))
+      (repeatedly #(.readLine *in*)))))
 
 (defn replace-host
   [host port url]
