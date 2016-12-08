@@ -19,7 +19,7 @@
       #(try
         (curl/url %)
         (catch java.net.MalformedURLException e nil))
-      (repeatedly #(.readLine *in*)))))
+      (line-seq (java.io.BufferedReader. *in*)))))
 
 (defn replace-host
   [host port url]
