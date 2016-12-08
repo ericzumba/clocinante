@@ -1,27 +1,27 @@
 (ns ^{:doc "Adding an emitter that brags about fact results"}
     example.pass-emitter
       (:require [midje.emission.plugins.util :as util]
-                            [midje.data.fact :as fact]
-                                        [midje.emission.plugins.default :as default]
-                                                    [midje.emission.state :as state]))
+                [midje.data.fact :as fact]
+                [midje.emission.plugins.default :as default]
+                [midje.emission.plugins.default-failure-lines :as lines]
+                [midje.emission.state :as state]))
 
-(defn finishing-top-level-fact [fact]
-    (util/emit-one-line (format "Dude! `%s` at line %d of %s totally finished!"
-                                                              (fact/name fact)
-                                                                                            (fact/line fact)
-                                                                                                                          (fact/file fact)))
+(defmethod lines/messy-lines :actual-result-did-not-match-expected-value [m]
+  (let [expected (:expected-result m)
+        actual (:actual m)]
+    (list
+      (#'lines/diffs [actual expected])
+      (#'lines/notes m))))
 
-      ;; Plugins are not responsible for keeping track of successes and
-        ;; failures. That happens independently, and you gain access to the
-          ;; counts through the `midje.emission.state` namespace.
-            (util/emit-one-line (format "We're up to %d passing checks!"
-                                                                      (state/output-counters:midje-passes))))
+(defn finishing-top-level-fact
+  [fact]
+  (util/emit-one-line
+    (format "Dude! `%s`!"
+            (fact/name fact))))
 
-;; The emission map is how you hook your functions into the
-;; system. It also makes it convenient to "inherit" from an
-;; existing map.
-(def emission-map (assoc default/emission-map
-                                                  :finishing-top-level-fact finishing-top-level-fact))
+(def emission-map
+  (assoc default/emission-map
+    :finishing-top-level-fact finishing-top-level-fact))
 
 ;; Here's where the installation happens.
 (state/install-emission-map emission-map)
