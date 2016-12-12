@@ -56,8 +56,14 @@
     (str test-host ":" test-port)
     (str cano-host ":" cano-port)))
 
+(defn only-string
+  [resp]
+  (instance? java.lang.String resp))
+
 (facts "all urls match expectations"
-  (doseq [case (filter #(= (:status (:expected %)) 200) mappings)]
+  (doseq [case (filter #(and
+                         (= (:status (:expected %)) 200)
+                         (only-string (:body (:expected %)))) mappings)]
     (fact {:midje/description (replace-host test-host test-port (:url case)) }
           (resp-json
             (:actual case)
